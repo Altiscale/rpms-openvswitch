@@ -35,10 +35,10 @@ Vendor: Nicira, Inc.
 Source0: http://openvswitch.org/releases/%{name}-%{version}.tar.gz
 Patch0: ovs-dev-datapath-Linux-4.9-compat.patch
 
-Buildroot: /tmp/openvswitch-rpm
-Requires: logrotate, python >= 2.7
-BuildRequires: openssl-devel
-BuildRequires: checkpolicy, selinux-policy-devel
+Requires: logrotate python27 python27-python-six
+BuildRequires: scl-utils-build python27 python27-python-six
+BuildRequires: scl-utils-build devtoolset-3 devtoolset-3-build
+BuildRequires: openssl-devel checkpolicy selinux-policy-devel
 
 %bcond_without check
 %bcond_with check_datapath_kernel
@@ -69,13 +69,21 @@ Tailored Open vSwitch SELinux policy
 %patch0 -p1
 
 %build
+%{?scl:scl enable python27 - << \EOPY}
+%{?scl:scl enable devtoolset-3 - << \EODT}
+
 ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=%{_localstatedir} \
     --libdir=%{_libdir} --enable-ssl --enable-shared
 make %{_smp_mflags}
 cd selinux
 make -f %{_datadir}/selinux/devel/Makefile
+ %{?scl:EODT}
+ %{?scl:EOPY}
 
 %install
+%{?scl:scl enable python27 - << \EOPY}
+%{?scl:scl enable devtoolset-3 - << \EODT}
+
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 
@@ -130,25 +138,8 @@ copy_headers lib %{_includedir}/openvswitch/lib
 
 install -D -m 0644 lib/.libs/libopenvswitch.a \
     $RPM_BUILD_ROOT/%{_libdir}/libopenvswitch.a
-
-%check
-%if %{with check}
-    if make check TESTSUITEFLAGS='%{_smp_mflags}' RECHECK=yes; then :;
-    else
-        cat tests/testsuite.log
-        exit 1
-    fi
-%endif
-%if %{with check_datapath_kernel}
-    if make check-kernel RECHECK=yes; then :;
-    else
-        cat tests/system-kmod-testsuite.log
-        exit 1
-    fi
-%endif
-
-%clean
-rm -rf $RPM_BUILD_ROOT
+%{?scl:EODT}
+%{?scl:EOPY}
 
 %post
 # Create default or update existing /etc/sysconfig/openvswitch.

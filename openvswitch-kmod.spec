@@ -23,7 +23,7 @@ Vendor:         Nicira, Inc.
 
 Source0:        http://openvswitch.org/releases/%{name}-%{version}.tar.gz
 Source1:        %{oname}-kmod.files
-Patch0:        ovs-dev-datapath-Linux-4.9-compat.patch
+Patch0:         ovs-dev-datapath-Linux-4.9-compat.patch
 
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires:  %kernel_module_package_buildreqs
